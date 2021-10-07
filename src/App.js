@@ -4,13 +4,26 @@ import { extractObjectKeys } from "./helpers/helpers";
 
 const App = () => {
   const [people, setPeople] = useState([]);
-  const [flattenedLocations, setFlattenedLocations] = useState([]);
+  const [flattenedLocations, setFlattenedLocations] = useState({
+    headers: [],
+    data: [],
+  });
 
-  const flattenLocations = (data) => {
-    const locations = data.map(({ location }) => location);
-    const location = locations[0];
-    const flattenedLocationsHeaders = extractObjectKeys(location);
-    return flattenedLocationsHeaders;
+  const flattenLocations = (people) => {
+    const locations = people.map(({ location }) => location);
+
+    const data = [];
+    for (const { street, coordinates, timezone, ...rest } of locations) {
+      data.push({
+        ...rest,
+        number: street.number,
+        name: street.name,
+        latitude: coordinates.latitude,
+        longitude: coordinates.longitude,
+      });
+    }
+    const flattenedLocationsHeaders = extractObjectKeys(data[0]);
+    return { headers: flattenedLocationsHeaders, data };
   };
 
   const getData = async () => {
@@ -28,11 +41,20 @@ const App = () => {
       <table>
         <thead>
           <tr>
-            {flattenedLocations.map((location, idx) => (
+            {flattenedLocations.headers.map((location, idx) => (
               <th key={`${location}-${idx}`}>{location}</th>
             ))}
           </tr>
         </thead>
+        <tbody>
+          {flattenedLocations.data.map((location, idx) => (
+            <tr key={`${location}-${idx}`}>
+              {Object.values(location).map((locationValue, valueIdx) => (
+                <td key={`${locationValue}-${valueIdx}`}>{locationValue}</td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
       </table>
       {people.map((person, idx) => (
         <div key={`${person.name.first}-${idx}`}>{person.name.first}</div>
