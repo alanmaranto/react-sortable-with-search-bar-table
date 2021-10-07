@@ -49,8 +49,8 @@ const App = () => {
         <tbody>
           {flattenedLocations.data.map((location, idx) => (
             <tr key={`${location}-${idx}`}>
-              {Object.values(location).map((locationValue, valueIdx) => (
-                <td key={`${locationValue}-${valueIdx}`}>{locationValue}</td>
+              {flattenedLocations.headers.map((header, headerIdx) => (
+                <td key={`${header}-${headerIdx}`}>{location[header]}</td>
               ))}
             </tr>
           ))}
