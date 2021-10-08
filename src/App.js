@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { fetchData } from "./api/api";
-import { extractObjectKeys } from "./helpers/helpers";
+import { extractObjectKeys, sortingDirectionsTypes } from "./helpers/helpers";
 
 const App = () => {
   const [people, setPeople] = useState([]);
@@ -8,6 +8,7 @@ const App = () => {
     headers: [],
     data: [],
   });
+  const [sortingDirections, setSortingDirections] = useState({});
 
   const flattenLocations = (people) => {
     const locations = people.map(({ location }) => location);
@@ -26,10 +27,65 @@ const App = () => {
     return { headers: flattenedLocationsHeaders, data };
   };
 
+  const sortData = (data, key, direction) => {
+    data.sort((a, b) => {
+      const relevantValueA = a[key];
+      const relevantValueB = b[key];
+      if (
+        direction === sortingDirectionsTypes.UNSORTED ||
+        direction === sortingDirectionsTypes.ASCENDING
+      ) {
+        if (relevantValueA < relevantValueB) return -1;
+        if (relevantValueA > relevantValueB) return 1;
+        return 0;
+      } else {
+        if (relevantValueA > relevantValueB) return -1;
+        if (relevantValueA < relevantValueB) return 1;
+        return 0;
+      }
+    });
+  };
+
+  const getNextSortingDirection = (direction) => {
+    if (
+      direction === sortingDirectionsTypes.UNSORTED ||
+      direction === sortingDirectionsTypes.ASCENDING
+    ) {
+      return sortingDirectionsTypes.DESCENDING;
+    }
+    return sortingDirectionsTypes.ASCENDING;
+  };
+
+  const sortColumn = (locationKey) => {
+    const newFlattenedLocations = {
+      ...flattenedLocations,
+      data: [...flattenedLocations.data],
+    };
+
+    const currentSortingDirection = sortingDirections[locationKey];
+    sortData(newFlattenedLocations.data, locationKey, currentSortingDirection);
+    const nextSortingDirection = getNextSortingDirection(
+      currentSortingDirection
+    );
+    const newSortingDirection = { ...sortingDirections };
+    newSortingDirection[locationKey] = nextSortingDirection;
+    setFlattenedLocations(newFlattenedLocations);
+    setSortingDirections(newSortingDirection);
+  };
+
+  const sortDirection = (headers) => {
+    const newSortingDirections = {};
+    for (const header of headers) {
+      newSortingDirections[header] = sortingDirectionsTypes.ASCENDING;
+    }
+    return newSortingDirections;
+  };
+
   const getData = async () => {
     const result = await fetchData();
     setPeople(result);
     setFlattenedLocations(flattenLocations(result));
+    setSortingDirections(sortDirection(flattenedLocations.headers));
   };
   useEffect(() => {
     getData();
@@ -41,8 +97,13 @@ const App = () => {
       <table>
         <thead>
           <tr>
-            {flattenedLocations.headers.map((location, idx) => (
-              <th key={`${location}-${idx}`}>{location}</th>
+            {flattenedLocations.headers.map((locationString, idx) => (
+              <th
+                key={`${locationString}-${idx}`}
+                onClick={() => sortColumn(locationString)}
+              >
+                {locationString}
+              </th>
             ))}
           </tr>
         </thead>
@@ -56,9 +117,6 @@ const App = () => {
           ))}
         </tbody>
       </table>
-      {people.map((person, idx) => (
-        <div key={`${person.name.first}-${idx}`}>{person.name.first}</div>
-      ))}
     </div>
   );
 };

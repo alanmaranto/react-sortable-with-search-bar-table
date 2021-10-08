@@ -10,3 +10,9 @@ export const extractObjectKeys = (object) => {
   });
   return objectKeysArr;
 };
+
+export const sortingDirectionsTypes = {
+  ASCENDING: "ASCENDING",
+  DESCENDING: "DESCENDING",
+  UNSORTED: "UNSORTED",
+};
