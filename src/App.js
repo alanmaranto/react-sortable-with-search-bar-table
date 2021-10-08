@@ -3,7 +3,6 @@ import { fetchData } from "./api/api";
 import { extractObjectKeys, sortingDirectionsTypes } from "./helpers/helpers";
 
 const App = () => {
-  const [people, setPeople] = useState([]);
   const [flattenedLocations, setFlattenedLocations] = useState({
     headers: [],
     data: [],
@@ -83,7 +82,6 @@ const App = () => {
 
   const getData = async () => {
     const result = await fetchData();
-    setPeople(result);
     setFlattenedLocations(flattenLocations(result));
     setSortingDirections(sortDirection(flattenedLocations.headers));
   };
