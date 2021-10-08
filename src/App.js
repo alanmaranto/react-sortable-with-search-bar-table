@@ -8,6 +8,7 @@ const App = () => {
     data: [],
   });
   const [sortingDirections, setSortingDirections] = useState({});
+  const [searchInput, setSearchInput] = useState("");
 
   const flattenLocations = (people) => {
     const locations = people.map(({ location }) => location);
@@ -80,6 +81,14 @@ const App = () => {
     return newSortingDirections;
   };
 
+  const getFilteredRows = (rows, filterKey) => {
+    return rows.filter((row) => {
+      return Object.values(row).some((s) =>
+        ("" + s).toLowerCase().includes(filterKey)
+      );
+    });
+  };
+
   const getData = async () => {
     const result = await fetchData();
     setFlattenedLocations(flattenLocations(result));
@@ -92,6 +101,12 @@ const App = () => {
   return (
     <div>
       <h1>People</h1>
+      <input
+        value={searchInput}
+        onChange={(e) => {
+          setSearchInput(e.target.value);
+        }}
+      />
       <table>
         <thead>
           <tr>
@@ -106,13 +121,15 @@ const App = () => {
           </tr>
         </thead>
         <tbody>
-          {flattenedLocations.data.map((location, idx) => (
-            <tr key={`${location}-${idx}`}>
-              {flattenedLocations.headers.map((header, headerIdx) => (
-                <td key={`${header}-${headerIdx}`}>{location[header]}</td>
-              ))}
-            </tr>
-          ))}
+          {getFilteredRows(flattenedLocations.data, searchInput).map(
+            (location, idx) => (
+              <tr key={`${location}-${idx}`}>
+                {flattenedLocations.headers.map((header, headerIdx) => (
+                  <td key={`${header}-${headerIdx}`}>{location[header]}</td>
+                ))}
+              </tr>
+            )
+          )}
         </tbody>
       </table>
     </div>
